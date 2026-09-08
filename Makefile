@@ -1,57 +1,46 @@
+include makes/util.mk
+
 SRC_DIR = ./src
 INC_DIR = ./include
 BIN_DIR = ./bin
 
-TMP_DIR = ./tmp
-REL_DIR = ./release
-
-SRC = $(wildcard $(SRC_DIR)/*.c) $(wildcard $(SRC_DIR)/*/*.c)
+SRC = $(call rwildcard,$(SRC_DIR),*.c)
+SRC += $(call rwildcard,./test,*.c)
 OUTPUT = $(BIN_DIR)/bin
 
 CFLAGS = -Wall -Wextra -O0 -g3
 
-VALGRIND_OUT = ./valgrind/analysis.out
-CALLGRIND_FLAGS = --tool=callgrind --dump-line=yes --dump-instr=yes --collect-jumps=yes --collect-systime=yes --collect-bus=yes --cache-sim=yes --branch-sim=yes --simulate-wb=yes --simulate-hwpref=yes --cacheuse=yes --time-stamp=yes
-
 CC = gcc
-AR = ar
-RANLIB = ranlib
 
 #CFLAGS += -DSTATIC_ALLOCATOR_DEBUG_MODE
 #CFLAGS += -DMEMORY_DIRECTORY_DEBUG_MODE
 
+LIBS = -I$(LIB_DIR)/dislexer/include -L$(LIB_DIR)/dislexer/lib/$(OSTYPE) -ldislexer
+
+include makes/release.mk
 all:
+	@$(call build_dependency,./lib)
 	$(CC) $(SRC) -o $(OUTPUT) -I$(INC_DIR) $(CFLAGS)
 
+include makes/valgrind.mk
 mcall:
-	$(CC) $(SRC) -o $(OUTPUT) -I$(INC_DIR) $(CFLAGS)
-	rm -f $(VALGRIND_OUT)
-	valgrind $(CALLGRIND_FLAGS) --callgrind-out-file=$(VALGRIND_OUT) $(OUTPUT)
-	sudo kcachegrind $(VALGRIND_OUT)
+	$(call valprof,$(OUTPUT))
+	$(call valk)
 
-#-------------------------------------------------
+WASM_CC = emcc
+WASM_DIR = ./wasm
+WASM_OUT = $(WASM_DIR)/code.js
+WASM_FLG = -sEXIT_RUNTIME=1 -sFORCE_FILESYSTEM=1
+
+wall:
+	$(WASM_CC) $(SRC) -o $(WASM_OUT) -I$(INC_DIR) $(CFLAGS) $(WASM_FLG)
 
 LIBNAME = s_alloc
 
-OS := $(shell uname)
+release-fix:
+	@echo "$(LIBNAME) -> Fixing makes submodules"
+	@git submodule update --init makes
+	@$(call run_make_in_subdirs,./lib,release-fix)
 
-ifeq ($(OS), Linux)
-	OSTYPE = Linux
-else
-	OSTYPE = Windows
-endif
-
-RELEASE_ASM = $(REL_DIR)/$(OSTYPE)/lib$(LIBNAME).a
-RELEASE_SRC = $(filter-out $(SRC_DIR)/test.c,$(SRC))
-RELEASE_OBJS = $(patsubst $(SRC_DIR)/%.c,$(TMP_DIR)/%.o,$(RELEASE_SRC))
-
-release-build:
-	@mkdir -p $(REL_DIR)/$(OSTYPE)
-	@mkdir -p $(TMP_DIR)
-	@$(MAKE) $(RELEASE_OBJS)
-	$(AR) rc $(RELEASE_ASM) $(RELEASE_OBJS)
-	$(RANLIB) $(RELEASE_ASM)
-
-$(TMP_DIR)/%.o: $(SRC_DIR)/%.c
-	@mkdir -p $(dir $@)
-	$(CC) -c $< -o $@ -I$(INC_DIR) $(CFLAGS)
+release:
+	$(call build_release,$(LIBNAME))

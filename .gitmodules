@@ -1,0 +1,3 @@
+[submodule "lib/dislexer"]
+	path = lib/dislexer
+	url = https://github.com/PaulOthar/dislexer.git
