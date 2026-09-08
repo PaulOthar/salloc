@@ -23,7 +23,7 @@ __release_mk_REL_OBJECTS = $(patsubst $(__release_mk_SRC_DIR)/%.c,$(__release_mk
 #	"$@" = target = 'tmp/code.o'
 $(__release_mk_REL_DIR_OBJ)/%.o: $(__release_mk_SRC_DIR)/%.c
 	@$(call mkdir,$(dir $@))
-	@$(__release_mk_CC) -c $< -o $@ -I$(__release_mk_INC_DIR) $(__release_mk_CFLAGS)
+	@$(__release_mk_CC) -c $< -o $@ -I$(__release_mk_INC_DIR) $(__release_mk_CFLAGS) $(RELEASE_LIBS)
 
 #build_release(lib_name)
 define build_release
@@ -32,7 +32,7 @@ define build_release
 	
 	@$(call rm_dir,$(__release_mk_REL_DIR_OBJ))
 	@echo "LIB - $(1) - Building object files"
-	@$(MAKE) $(__release_mk_REL_OBJECTS)
+	@$(MAKE) $(__release_mk_REL_OBJECTS) RELEASE_LIBS="$(2)"
 	
 	@echo "LIB - $(1) - Building archive file"
 	@$(call rm_fil,$(__release_mk_REL_DIR_LIB)/lib$(1).a)
