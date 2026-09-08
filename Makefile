@@ -38,6 +38,5 @@ wall:
 
 LIBNAME = s_alloc
 
-.PHONY: release
 release:
 	$(call build_release,$(LIBNAME),$(LIBS))
