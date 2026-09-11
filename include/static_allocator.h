@@ -23,7 +23,7 @@ void s_init(int mem_size);
  * @param size The size in bytes
  * @return a pointer to the allocated memory
  */
-void* s_alloc(int size);
+void* s_alloc(unsigned int size);
 
 /**
  * Liberates the specific pointer's memory, making it available for reallocation, but beware of fragmentation.

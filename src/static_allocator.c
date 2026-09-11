@@ -19,8 +19,8 @@
 #define STATIC_ALLOCATOR_STEP_AHEAD(PTR,SIZE) (memheader*)(((void*)(PTR + 1)) + SIZE)
 
 typedef struct memheader{
-	int size;
-	int tags;
+	unsigned int size;
+	unsigned int tags;
 }memheader;
 
 int static_memory_size;
@@ -54,14 +54,14 @@ void s_init(int mem_size){
 	rover->tags = STATIC_ALLOCATOR_TAG_FREE;
 }
 
-void* s_alloc(int size){
+void* s_alloc(unsigned int size){
 	if(!size){ return 0; }
 	#ifdef STATIC_ALLOCATOR_SIZE
 		if(!rover){ s_init(sizeof(s_pool)); }
 	#endif
 	STATIC_ALLOCATOR_DEBUG("Attempting memory allocation of %d bytes from a total of %d", size, avmem_global);
 
-	int sizereal = size + sizemh;
+	unsigned int sizereal = size + sizemh;
 	memheader* result = (memheader*)s_pool;
 
 	if(rover->size >= sizereal){//if the rover has enough space

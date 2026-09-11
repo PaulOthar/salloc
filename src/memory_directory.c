@@ -57,14 +57,16 @@ static memory_unit* append_unit(memory_unit* dir, char* name, uint64_t id, int s
 
 	unit->size = size;
 
-	unit->next = dir->content; if(unit->next){ unit->next->prev = unit; }
+	unit->next = dir->children; if(unit->next){ unit->next->prev = unit; }
 	unit->prev = dir;
-	dir->content = unit;
+	dir->children = unit;
 
 	copy_name(unit->name, name);
 	unit->id = id;
 
-	unit->content = 0;
+	unit->children = 0;
+
+	unit->data = size ? (unit + 1) : 0;
 
 	return unit;
 }
@@ -77,14 +79,14 @@ void md_init_root(memory_unit* root){
 
 	root->next = 0;
 	root->prev = 0;
-	root->content = 0;
+	root->children = 0;
 
 	root->size = 0;
 }
 
 void* md_alloc_path(memory_unit* current, char* path, int size){
 	uint64_t id = build_id(path);
-	memory_unit* found = current->content ? find_near_unit(current->content, id) : 0;
+	memory_unit* found = current->children ? find_near_unit(current->children, id) : 0;
 	char* next_path = skip_to_next(path);
 
 	int condit = (found ? 1 : 0) | (next_path ? 2 : 0);
@@ -122,25 +124,42 @@ void md_free_unit(memory_unit* unit){
 	if(!unit){ return; }
 
 	//Nuke all its children
-	for(memory_unit* content = unit->content; content; content = content->next){
+	for(memory_unit* content = unit->children; content; content = content->next){
 		md_free_unit(content);
 	}
 	MEMORY_DIRECTORY_DEBUG("Freeing unit '%s'", unit->name);
 
 	if(unit->next){ unit->next->prev = unit->prev; }
 	if(unit->prev){
-		if(unit->prev->content == unit){ unit->prev->content = unit->next; }
+		if(unit->prev->children == unit){ unit->prev->children = unit->next; }
 		else{ unit->prev->next = unit->next; }
 	}
 
 	FREE_MEMORY(unit);
 }
 
+memory_unit* md_wrap_memory(memory_unit* current, char* path, int size, void* ptr){
+	void* block = md_alloc_path(current, path, 0);
+	memory_unit* wrapper = block ? md_header(block) : block;
+	if(wrapper){
+		wrapper->size = size;
+		wrapper->data = ptr;
+	}
+	return wrapper;
+}
+
 memory_unit* md_fetch_path(memory_unit* root, char* path){
 	for(char* p = path; p && root; p = skip_to_next(p)){
-		if(!root->content){ return 0; }
+		if(!root->children){ return 0; }
 		uint64_t id = build_id(p);
-		root = find_near_unit(root->content, id);
+		root = find_near_unit(root->children, id);
+	}
+	return root;
+}
+
+memory_unit* md_fetch_parent(memory_unit* root){
+	for(memory_unit* current = root->prev; root; current = root, root = root->prev){
+		if(root->children == current){ return root; }
 	}
 	return root;
 }
@@ -150,7 +169,23 @@ memory_unit* md_header(void* ptr){
 }
 
 void* md_data(memory_unit* unit){
-	return unit + 1;
+	return unit->data;
+}
+
+int md_recursive_count(memory_unit* unit){
+	int total = 1;
+	for(memory_unit* child = unit->children; child; child = child->next){
+		total += md_recursive_count(child);
+	}
+	return total;
+}
+
+int md_recursive_size(memory_unit* unit){
+	int total = unit->size;
+	for(memory_unit* child = unit->children; child; child = child->next){
+		total += md_recursive_size(child);
+	}
+	return total;
 }
 
 //------------------------------------------------------------------------------------------------------------------------------------
@@ -173,6 +208,6 @@ void md_print_tree(memory_unit* root, int identation){
 		char* name = root->name;
 
 		printf("%s['%s'] -> size: %d (+ %d Header)\n", identstr, name, size, sizeof_memory_unit);
-		if(root->content){ md_print_tree(root->content, identation + (name_len(name) / 2) + 2); }
+		if(root->children){ md_print_tree(root->children, identation + (name_len(name) / 2) + 2); }
 	}
 }
