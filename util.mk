@@ -22,7 +22,7 @@ if exist "$(call winpath,$(1))" $(2)
 endef
 
 define run_make
-	$(MAKE) --no-print-directory -C "$(1)" $(2) 2>NUL || echo "ERROR: $(1) -> $(2) failed"
+	$(MAKE) --no-print-directory $(3) -C "$(1)" $(2) 2>NUL || echo "ERROR: $(1) -> $(2) failed"
 endef
 
 else
@@ -48,7 +48,7 @@ if [ -f "$(1)" ]; then $(2); fi
 endef
 
 define run_make
-	$(MAKE) --no-print-directory -C "$(1)" $(2) 2>/dev/null || echo "ERROR: $(1) -> $(2) failed"
+	$(MAKE) --no-print-directory $(3) -C "$(1)" $(2) 2>/dev/null || echo "ERROR: $(1) -> $(2) failed"
 endef
 	
 	endif
@@ -60,9 +60,9 @@ define newline
 
 endef
 
-#run_make_in_subdirs(directory, target)
+#run_make_in_subdirs(directory, target, makefile_flags)
 define run_make_in_subdirs
-$(foreach dir,$(wildcard $(1)/*/),$(call run_make,$(dir),$(2))$(newline))
+$(foreach dir,$(wildcard $(1)/*),$(call run_make,$(dir),$(2),$(3))$(newline))
 endef
 
 #recursive_wildcard(directory, pattern)
@@ -70,5 +70,5 @@ endef
 #2.1| for each subdirectory in this directory
 #2.2| run this nonsense again in the subdirectory we found
 define rwildcard
-$(wildcard $(1)/$(2))$(foreach dir,$(wildcard $(1)/*/),$(call rwildcard,$(dir),$(2)))
+$(wildcard $(1)/$(2))$(foreach dir,$(wildcard $(1)/*),$(call rwildcard,$(dir),$(2)))
 endef

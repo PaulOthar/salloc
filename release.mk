@@ -46,5 +46,5 @@ endef
 # for each project inside the specified directory,
 # run its Makefile with the release target (if it has the file and the target)
 define build_dependency
-$(call run_make_in_subdirs,$(1),release)
+$(call run_make_in_subdirs,$(1),release,-B)
 endef
