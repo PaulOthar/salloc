@@ -1,3 +1,6 @@
 [submodule "lib/dislexer"]
 	path = lib/dislexer
 	url = https://github.com/PaulOthar/dislexer.git
+[submodule "makes"]
+	path = makes
+	url = https://github.com/PaulOthar/makes.git
