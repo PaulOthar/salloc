@@ -3,16 +3,20 @@
 
 #include <stdint.h>
 
+typedef enum {
+	MEMORY_DIRECTORY_STATIC = 1,
+} md_flag;
+
 typedef struct _memory_unit{
 	char name[16];
 
-	uint32_t meta;
 	uint32_t size;
 	uint64_t id;
 
 	struct _memory_unit* prev;
 	struct _memory_unit* next;
-	void* content;
+	struct _memory_unit* children;
+	void* data;
 }memory_unit;
 
 /**
@@ -44,6 +48,19 @@ void* md_alloc_path(memory_unit* root, char* path, int size);
 void md_free_unit(memory_unit* unit);
 
 /**
+ * Wraps the specified pointer in a memory directory (puts it in the directory tree).
+ * Creates new directories if the specified path does not exist yet.
+ * Each segment must be separated by a forward slash: '/'
+ * @fn memory_unit md_wrap_memory*(memory_unit*, char*, int, void*)
+ * @param root Pointer of the main unit
+ * @param path Sequence of directory names separated by a forward slash '/'
+ * @param size Size of the memory block (in bytes)
+ * @param ptr Pointer to the block
+ * @return Pointer to the generated unit
+ */
+memory_unit* md_wrap_memory(memory_unit* root, char* path, int size, void* ptr);
+
+/**
  * Finds and returns a `memory_unit` on the specified path.
  * @fn memory_unit md_fetch_path*(memory_unit*, char*)
  * @param root Pointer to the main unit
@@ -51,6 +68,14 @@ void md_free_unit(memory_unit* unit);
  * @return a pointer to the unit found, or null (0) if none were found
  */
 memory_unit* md_fetch_path(memory_unit* root, char* path);
+
+/**
+ * Finds and returns a `memory_unit` above.
+ * @fn memory_unit md_fetch_parent*(memory_unit*)
+ * @param root Pointer to the current unit
+ * @return a pointer to the unit found, or null (0) if none were found
+ */
+memory_unit* md_fetch_parent(memory_unit* root);
 
 //-----------------------------------------------------------------------------------------
 
@@ -70,6 +95,22 @@ memory_unit* md_header(void* ptr);
  * @return a pointer to the block of the specified header
  */
 void* md_data(memory_unit* unit);
+
+/**
+ * Reads the count of the entire tree from the specified branch, recursively.
+ * @fn int md_recursive_count(memory_unit*)
+ * @param unit Pointer to the top unit
+ * @return total count of branches and leafs the tree
+ */
+int md_recursive_count(memory_unit* unit);
+
+/**
+ * Reads the size of the entire tree from the specified branch, recursively.
+ * @fn int md_recursive_size(memory_unit*)
+ * @param unit Pointer to the top unit
+ * @return total size of the tree
+ */
+int md_recursive_size(memory_unit* unit);
 
 //-----------------------------------------------------------------------------------------
 
