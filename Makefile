@@ -39,4 +39,5 @@ wall:
 LIBNAME = salloc
 
 release:
+	@$(call build_dependency,./lib)
 	$(call build_release,$(LIBNAME),$(LIBS))
