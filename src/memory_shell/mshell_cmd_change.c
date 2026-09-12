@@ -11,5 +11,9 @@ int _mshell_command_change(mshell_context* context, char* param){
 
 	context->focus = entry;
 
+	if(context->flags & MSHELL_FLAG_LIST_WHEN_CHANGE){
+		return _mshell_list(context, context->default_result_lines, 0);
+	}
+
 	return 1;
 }

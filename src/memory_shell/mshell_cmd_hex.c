@@ -28,6 +28,45 @@ static void _mshell_build_local_codex(void){
 	used += _mshell_build_codex(codex, slots + used, local_word_list, local_word_list_size);
 }
 
+int _mshell_hex(mshell_context* context, memory_unit* target, int lines, int offset, int bytes){
+	char* block = md_data(target);
+	if(!block){
+		_mshell_write_error(context, MSHELL_ERROR_COMMAND, "entry has no memory ", 0, 0);
+		return 0;
+	}
+
+	int size = target->size;
+	int reading = (lines * bytes) + offset;
+	size = size < reading ? size : reading;
+
+	for(int i = offset; i < size; i += bytes){
+		int ipr = i + bytes;
+		if(ipr >= size){ ipr = size; }
+
+		if(i){ _mshell_write_string(context, "\n", 2); }
+		_mshell_write_hex(context, i, 8); _mshell_write_string(context, " | ", 4);
+
+		for(int l = i; l < ipr; l++){
+			if(l > i){ _mshell_write_string(context, " ", 2); }
+			_mshell_write_hex(context, block[l] & 0xff, 2);
+		}
+
+		for(int l = i + bytes - size; l > 0; l--){
+			_mshell_write_string(context, " __", 4);
+		}
+
+		_mshell_write_string(context, " | ", 4);
+
+		for(int l = i; l < ipr; l++){
+			int c = block[l];
+			if(c < 32 || c > 127){ c = '.'; }
+			_mshell_write_char(context, c);
+		}
+	}
+
+	return 1;
+}
+
 int _mshell_command_hex(mshell_context* context, char* param){
 	dislexer_token token; int param_size = dislexer_parse(&mshell_local_codex, param, &token);
 	_mshell_clear_buffer(context);
@@ -82,34 +121,5 @@ int _mshell_command_hex(mshell_context* context, char* param){
 		param_size = dislexer_parse(&mshell_local_codex, param, &token);
 	}
 
-	int size = target->size;
-	int reading = (lines * bytes) + offset;
-	size = size < reading ? size : reading;
-
-	for(int i = offset; i < size; i += bytes){
-		int ipr = i + bytes;
-		if(ipr >= size){ ipr = size; }
-
-		if(i){ _mshell_write_string(context, "\n", 2); }
-		_mshell_write_hex(context, i, 8); _mshell_write_string(context, " | ", 4);
-
-		for(int l = i; l < ipr; l++){
-			if(l > i){ _mshell_write_string(context, " ", 2); }
-			_mshell_write_hex(context, block[l] & 0xff, 2);
-		}
-
-		for(int l = i + bytes - size; l > 0; l--){
-			_mshell_write_string(context, " __", 4);
-		}
-
-		_mshell_write_string(context, " | ", 4);
-
-		for(int l = i; l < ipr; l++){
-			int c = block[l];
-			if(c < 32 || c > 127){ c = '.'; }
-			_mshell_write_char(context, c);
-		}
-	}
-
-	return 0;
+	return _mshell_hex(context, target, lines, offset, bytes);
 }

@@ -17,6 +17,11 @@ typedef enum {
 	MSHELL_ERROR_SYSTEM		= 4,
 } memory_shell_error;
 
+typedef enum {
+    MSHELL_FLAG_LIST_WHEN_CHANGE		= 0b00000001,
+	MSHELL_FLAG_HEX_WHEN_SET	= 0b00000010,
+} memory_shell_flags;
+
 typedef struct /*memory_context*/{
 	memory_unit* root;
 	memory_unit* focus;
@@ -29,6 +34,8 @@ typedef struct /*memory_context*/{
 	unsigned int buffer_carriage;
 
 	int default_result_lines;
+
+	int flags;
 }mshell_context;
 
 void mshell_context_init(mshell_context* context, memory_unit* root, char* result_buffer, int buffer_size);

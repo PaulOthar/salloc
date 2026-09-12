@@ -46,6 +46,11 @@ memory_unit* _mshell_fetch_unit(mshell_context* context, dislexer_token* token);
 memory_unit* _mshell_find_unit(mshell_context* context, dislexer_token* token, char* param, int param_size, int allow_parent);
 memory_unit* _mshell_create_unit(mshell_context* context, char* path, int path_size, int size);
 
+//----------------reusable commands----------------
+
+int _mshell_list(mshell_context* context, int lines, int offset);
+int _mshell_hex(mshell_context* context, memory_unit* target, int lines, int offset, int bytes);
+
 //----------------internal commands----------------
 
 int _mshell_command_change(mshell_context* context, char* param);

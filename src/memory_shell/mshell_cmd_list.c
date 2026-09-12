@@ -26,6 +26,32 @@ static void _mshell_build_local_codex(void){
 	used += _mshell_build_codex(codex, slots + used, local_word_list, local_word_list_size);
 }
 
+int _mshell_list(mshell_context* context, int lines, int offset){
+	int found = 0;
+	int skipped = 0;
+	for(memory_unit* inner = context->focus->children; inner && found < lines; inner = inner->next){
+		if(skipped < offset){ skipped++; continue; }
+
+		if(found){ _mshell_write_string(context, "\n", 2); }
+		_mshell_write_string(context, inner->name, 16);
+		_mshell_write_string(context, " - Total: ", 99);
+		_mshell_write_number(context, md_recursive_size(inner));
+		if(inner->size){
+			_mshell_write_string(context, " (Self: ", 99);
+			_mshell_write_number(context, inner->size);
+			_mshell_write_string(context, ")", 3);
+		}
+		found++;
+	}
+
+	if(!found){
+		if(!skipped && lines){ _mshell_write_string(context, "this directory is empty", 99); }
+		else{ _mshell_write_string(context, "no entry found in the specified configuration", 99); }
+	}
+
+	return 1;
+}
+
 int _mshell_command_list(mshell_context* context, char* param){
 	dislexer_token token; int param_size = dislexer_parse(&mshell_local_codex, param, &token);
 	_mshell_clear_buffer(context);
@@ -62,28 +88,6 @@ int _mshell_command_list(mshell_context* context, char* param){
 		param_size = dislexer_parse(&mshell_local_codex, param, &token);
 	}
 
-	int found = 0;
-	int skipped = 0;
-	for(memory_unit* inner = context->focus->children; inner && found < lines; inner = inner->next){
-		if(skipped < offset){ skipped++; continue; }
-
-		if(found){ _mshell_write_string(context, "\n", 2); }
-		_mshell_write_string(context, inner->name, 16);
-		_mshell_write_string(context, " - Total: ", 99);
-		_mshell_write_number(context, md_recursive_size(inner));
-		if(inner->size){
-			_mshell_write_string(context, " (Self: ", 99);
-			_mshell_write_number(context, inner->size);
-			_mshell_write_string(context, ")", 3);
-		}
-		found++;
-	}
-
-	if(!found){
-		if(!skipped && lines){ _mshell_write_string(context, "this directory is empty", 99); }
-		else{ _mshell_write_string(context, "no entry found in the specified configuration", 99); }
-	}
-
-	return 1;
+	return _mshell_list(context, lines, offset);
 }
 

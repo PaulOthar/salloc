@@ -90,6 +90,10 @@ int _mshell_command_set(mshell_context* context, char* param){
 	int result = write_token_data_recursive(context, offset, repeat, param, 0, 0);
 	context->focus = prev;
 
+	if(context->flags & MSHELL_FLAG_HEX_WHEN_SET){
+		return _mshell_hex(context, target, context->default_result_lines, offset, 8);
+	}
+
 	return result;
 }
 

@@ -14,15 +14,17 @@ int main(){
 	md_init_root(&root);
 	mshell_context_init(&context, &root, result_buffer, 4096);
 
+	context.flags = 3;
+
 	md_wrap_memory(&root, "static/result", 4096, result_buffer);
 	md_wrap_memory(&root, "static/command", 1024, command_buffer);
 
 	while(context.result_value != -1){
 		printf("%s> ", context.focus->name);
-//		fgets(command_buffer, 1024, stdin); mshell_run(&context, command_buffer); printf("%s%s", context.result_buffer, context.buffer_carriage ? "\n\n" : ""); continue;
+		fgets(command_buffer, 1024, stdin); mshell_run(&context, command_buffer); printf("%s%s", context.result_buffer, context.buffer_carriage ? "\n\n" : ""); continue;
 		mshell_run(&context, "cd static/command\n"); printf("%s%s", context.result_buffer, context.buffer_carriage ? "\n" : "");
-		mshell_run(&context, "set -r 32 0x00 0xff 0x00 0x00\n"); printf("%s%s", context.result_buffer, context.buffer_carriage ? "\n" : "");
-		mshell_run(&context, "hex"); printf("%s%s", context.result_buffer, context.buffer_carriage ? "\n" : "");
+//		mshell_run(&context, "set -r 32 0x00 0xff 0x00 0x00\n"); printf("%s%s", context.result_buffer, context.buffer_carriage ? "\n" : "");
+//		mshell_run(&context, "hex"); printf("%s%s", context.result_buffer, context.buffer_carriage ? "\n" : "");
 		return 0;
 	}
 }
