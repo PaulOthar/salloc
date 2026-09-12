@@ -19,10 +19,10 @@ int main(){
 
 	while(context.result_value != -1){
 		printf("%s> ", context.focus->name);
-		fgets(command_buffer, 1024, stdin); mshell_run(&context, command_buffer); printf("%s%s", context.result_buffer, context.buffer_carriage ? "\n\n" : ""); continue;
-//		mshell_run(&context, "cd static/command\n"); printf("%s%s", context.result_buffer, context.buffer_carriage ? "\n" : "");
-//		mshell_run(&context, "stat -n\n"); printf("%s%s", context.result_buffer, context.buffer_carriage ? "\n" : "");
-//		mshell_run(&context, "ls"); printf("%s%s", context.result_buffer, context.buffer_carriage ? "\n" : "");
+//		fgets(command_buffer, 1024, stdin); mshell_run(&context, command_buffer); printf("%s%s", context.result_buffer, context.buffer_carriage ? "\n\n" : ""); continue;
+		mshell_run(&context, "cd static/command\n"); printf("%s%s", context.result_buffer, context.buffer_carriage ? "\n" : "");
+		mshell_run(&context, "set -r 32 0x00 0xff 0x00 0x00\n"); printf("%s%s", context.result_buffer, context.buffer_carriage ? "\n" : "");
+		mshell_run(&context, "hex"); printf("%s%s", context.result_buffer, context.buffer_carriage ? "\n" : "");
 		return 0;
 	}
 }

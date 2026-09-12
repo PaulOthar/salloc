@@ -96,7 +96,7 @@ int _mshell_command_set(mshell_context* context, char* param){
 static int write_token_data_recursive(mshell_context* context, int offset, int repeat, char* param, token_list* start, token_list* end){
 	dislexer_token token; int param_size = dislexer_parse(&mshell_local_codex, param, &token);
 
-	if(!token.value){//we reached the end of this ordeal
+	if(!token.value && token.type != DISLEXER_TOKEN_TYPE_NUMBER){//we reached the end of this ordeal
 		write_tokens_to_unit(context->focus, offset, repeat, start);
 		return 1;
 	}

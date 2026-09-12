@@ -37,7 +37,8 @@ int _mshell_command_hex(mshell_context* context, char* param){
 	int bytes = 8;
 	memory_unit* target = context->focus;
 
-	if(token.type != DISLEXER_TOKEN_TYPE_WORD){
+	if(token.type == 0 && token.value == 0){  }
+	else if(token.type != DISLEXER_TOKEN_TYPE_WORD){
 		target = _mshell_find_unit(context, &token, param, param_size, 0);
 		if(!target){ return 0; }
 
