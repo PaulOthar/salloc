@@ -36,7 +36,7 @@ WASM_FLG = -sEXIT_RUNTIME=1 -sFORCE_FILESYSTEM=1
 wall:
 	$(WASM_CC) $(SRC) -o $(WASM_OUT) -I$(INC_DIR) $(CFLAGS) $(WASM_FLG)
 
-LIBNAME = s_alloc
+LIBNAME = salloc
 
 release:
 	$(call build_release,$(LIBNAME),$(LIBS))
