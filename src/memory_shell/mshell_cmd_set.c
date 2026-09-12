@@ -2,10 +2,12 @@
 
 typedef enum {
 	MSHELL_WORD_offset = 1,
+	MSHELL_WORD_repeat = 2,
 } mshell_local_symbol;
 
 static mshell_word local_word_list[] = {
 	{ "-o", MSHELL_WORD_offset, 0 },
+	{ "-r", MSHELL_WORD_repeat, 0 },
 };
 static int local_word_list_size = _MSHELL_ARRAY_SIZE(local_word_list);
 
@@ -29,8 +31,8 @@ typedef struct _token_list{
 	struct _token_list* next;
 }token_list;
 
-static int write_token_data_recursive(mshell_context* context, int offset, char* param, token_list* start, token_list* end);
-static int write_tokens_to_unit(memory_unit* target, int offset, token_list* start);
+static int write_token_data_recursive(mshell_context* context, int offset, int repeat, char* param, token_list* start, token_list* end);
+static int write_tokens_to_unit(memory_unit* target, int offset, int repeat, token_list* start);
 static int append_string(char* block, int limit, int offset, char* str, int str_size);
 static int append_number(char* block, int limit, int offset, unsigned long long int number);
 
@@ -39,6 +41,7 @@ int _mshell_command_set(mshell_context* context, char* param){
 	_mshell_clear_buffer(context);
 
 	int offset = 0;
+	int repeat = 1;
 	memory_unit* target = context->focus;
 
 	if(token.type != DISLEXER_TOKEN_TYPE_WORD){
@@ -71,6 +74,7 @@ int _mshell_command_set(mshell_context* context, char* param){
 
 		switch(word){
 			case MSHELL_WORD_offset: offset = token.value; break;
+			case MSHELL_WORD_repeat: repeat = token.value; break;
 			default:
 				_mshell_write_trimmed_error(context, MSHELL_ERROR_LEXICAL, "invalid parameter ", param, param_size);
 				return 0;
@@ -83,17 +87,17 @@ int _mshell_command_set(mshell_context* context, char* param){
 
 	memory_unit* prev = context->focus;
 	context->focus = target;
-	int result = write_token_data_recursive(context, offset, param, 0, 0);
+	int result = write_token_data_recursive(context, offset, repeat, param, 0, 0);
 	context->focus = prev;
 
 	return result;
 }
 
-static int write_token_data_recursive(mshell_context* context, int offset, char* param, token_list* start, token_list* end){
+static int write_token_data_recursive(mshell_context* context, int offset, int repeat, char* param, token_list* start, token_list* end){
 	dislexer_token token; int param_size = dislexer_parse(&mshell_local_codex, param, &token);
 
 	if(!token.value){//we reached the end of this ordeal
-		write_tokens_to_unit(context->focus, offset, start);
+		write_tokens_to_unit(context->focus, offset, repeat, start);
 		return 1;
 	}
 
@@ -109,21 +113,23 @@ static int write_token_data_recursive(mshell_context* context, int offset, char*
 	if(!start){ start = &this; }
 	if(end){ end->next = &this; }
 	end = &this;
-	return write_token_data_recursive(context, offset, param + param_size, start, end);
+	return write_token_data_recursive(context, offset, repeat, param + param_size, start, end);
 }
 
-static int write_tokens_to_unit(memory_unit* target, int offset, token_list* start){
+static int write_tokens_to_unit(memory_unit* target, int offset, int repeat, token_list* start){
 	int size = target->size;
 	char* block = md_data(target);
 
-	for(token_list* list = start; list && offset < size; list = list->next){
-		dislexer_token* data = list->token;
+	for(int i = 0; i < repeat; i++){
+		for(token_list* list = start; list && offset < size; list = list->next){
+			dislexer_token* data = list->token;
 
-		if(data->type == DISLEXER_TOKEN_TYPE_NUMBER){
-			offset = append_number(block, size, offset, data->value);
-			continue;
+			if(data->type == DISLEXER_TOKEN_TYPE_NUMBER){
+				offset = append_number(block, size, offset, data->value);
+				continue;
+			}
+			offset = append_string(block, size, offset, data->content, data->value);
 		}
-		offset = append_string(block, size, offset, data->content, data->value);
 	}
 
 	return 1;
