@@ -1,17 +1,5 @@
 #include "memory_directory.h"
 
-#ifdef MEMORY_DIRECTORY_SYSTEM_ALLOCATOR
-#include <stdlib.h>
-#define ALLOCATE_MEMORY(size) malloc(size)
-#define FREE_MEMORY(ptr) free(ptr)
-#define MERGE_AT(ptr)
-#else
-#include "static_allocator.h"
-#define ALLOCATE_MEMORY(size) s_alloc(size)
-#define FREE_MEMORY(ptr) s_free(ptr)
-#define MERGE_AT(ptr) s_merge_at(ptr)
-#endif
-
 #ifdef MEMORY_DIRECTORY_DEBUG_MODE
 #include <stdio.h>
 #define MEMORY_DIRECTORY_DEBUG(MESAGE,...) printf("DEBUG <MD>: " MESAGE "\n", ##__VA_ARGS__)

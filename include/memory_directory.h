@@ -117,3 +117,29 @@ int md_recursive_size(memory_unit* unit);
 void md_print_tree(memory_unit* root, int identation);
 
 #endif
+
+#ifdef MEMORY_DIRECTORY_STATIC_ALLOCATOR
+
+#include "static_allocator.h"
+#define ALLOCATE_MEMORY(size) s_alloc(size)
+#define FREE_MEMORY(ptr) s_free(ptr)
+#define MERGE_AT(ptr) s_merge_at(ptr)
+
+#elif MEMORY_DIRECTORY_CUSTOM_ALLOCATOR
+
+#define ALLOCATE_MEMORY(size) custom_alloc(size)
+#define FREE_MEMORY(ptr) custom_free(ptr)
+#define MERGE_AT(ptr) custom_merge_at(ptr)
+
+void* custom_alloc(unsigned int size);
+void custom_free(void* ptr);
+int custom_merge_at(void* ptr);
+
+#else
+
+#include <stdlib.h>
+#define ALLOCATE_MEMORY(size) malloc(size)
+#define FREE_MEMORY(ptr) free(ptr)
+#define MERGE_AT(ptr)
+
+#endif
