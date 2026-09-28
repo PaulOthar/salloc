@@ -34,7 +34,7 @@ WASM_OUT = $(WASM_DIR)/code.js
 WASM_FLG = -sEXIT_RUNTIME=1 -sFORCE_FILESYSTEM=1
 
 wall:
-	$(WASM_CC) $(SRC) -o $(WASM_OUT) -I$(INC_DIR) $(CFLAGS) $(WASM_FLG)
+	$(WASM_CC) $(SRC) ./lib/dislexer/src/dislexer.c -o $(WASM_OUT) -I$(INC_DIR) -I./lib/dislexer/include $(CFLAGS) $(WASM_FLG) 
 
 LIBNAME = salloc
 

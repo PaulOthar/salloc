@@ -10,6 +10,7 @@
 /notes/*
 /release/
 /src/test.c
+/wasm/
 
 # GCC
 /bin/
